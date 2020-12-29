@@ -218,4 +218,3 @@ func (s *sessionHandler) OnSignal(requestID uint64, signal string) error {
 func (s *sessionHandler) OnWindow(requestID uint64, columns uint32, rows uint32, width uint32, height uint32) error {
 	return s.backend.OnWindow(requestID, columns, rows, width, height)
 }
-

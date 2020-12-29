@@ -14,7 +14,7 @@ func New(
 		return nil, fmt.Errorf("invalid security configuration (%w)", err)
 	}
 	return &networkHandler{
-		config: config,
+		config:  config,
 		backend: backend,
 	}, nil
 }

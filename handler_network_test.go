@@ -17,7 +17,7 @@ func TestMaxSessions(t *testing.T) {
 			MaxSessions: 10,
 		},
 		backend: &backend,
-		lock: &sync.Mutex{},
+		lock:    &sync.Mutex{},
 	}
 
 	for i := uint(0); i < ssh.config.MaxSessions; i++ {

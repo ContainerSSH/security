@@ -19,7 +19,7 @@ func TestEnvRequest(t *testing.T) {
 		},
 		backend: &dummyBackend{},
 		sshConnection: &sshConnectionHandler{
-			lock:         &sync.Mutex{},
+			lock: &sync.Mutex{},
 		},
 	}
 
@@ -41,11 +41,10 @@ func TestEnvRequest(t *testing.T) {
 
 func TestPTYRequest(t *testing.T) {
 	session := &sessionHandler{
-		config: Config{
-		},
+		config:  Config{},
 		backend: &dummyBackend{},
 		sshConnection: &sshConnectionHandler{
-			lock:         &sync.Mutex{},
+			lock: &sync.Mutex{},
 		},
 	}
 
@@ -62,13 +61,12 @@ func TestPTYRequest(t *testing.T) {
 func TestCommand(t *testing.T) {
 	backend := &dummyBackend{}
 	session := &sessionHandler{
-		config: Config{},
+		config:  Config{},
 		backend: backend,
 		sshConnection: &sshConnectionHandler{
-			lock:         &sync.Mutex{},
+			lock: &sync.Mutex{},
 		},
 	}
-
 
 	exit := func(exitStatus sshserver.ExitStatus) {}
 
@@ -95,7 +93,7 @@ func TestCommand(t *testing.T) {
 	session.config.ForceCommand = "/bin/wrapper"
 	backend.commandsExecuted = []string{}
 	backend.env = map[string]string{}
-	assert.NoError(t, session.OnExecRequest(1,  "/bin/bash", nil, nil, nil, exit))
+	assert.NoError(t, session.OnExecRequest(1, "/bin/bash", nil, nil, nil, exit))
 	assert.Equal(t, []string{"/bin/wrapper"}, backend.commandsExecuted)
 	assert.Equal(t, map[string]string{"SSH_ORIGINAL_COMMAND": "/bin/bash"}, backend.env)
 }
@@ -103,10 +101,10 @@ func TestCommand(t *testing.T) {
 func TestShell(t *testing.T) {
 	backend := &dummyBackend{}
 	session := &sessionHandler{
-		config: Config{},
+		config:  Config{},
 		backend: backend,
 		sshConnection: &sshConnectionHandler{
-			lock:         &sync.Mutex{},
+			lock: &sync.Mutex{},
 		},
 	}
 
@@ -132,17 +130,17 @@ func TestShell(t *testing.T) {
 	session.config.ForceCommand = "/bin/wrapper"
 	backend.commandsExecuted = []string{}
 	backend.env = map[string]string{}
-	assert.NoError(t, session.OnShell(1,  nil, nil, nil, exit))
+	assert.NoError(t, session.OnShell(1, nil, nil, nil, exit))
 	assert.Equal(t, []string{"/bin/wrapper"}, backend.commandsExecuted)
 }
 
 func TestSubsystem(t *testing.T) {
 	backend := &dummyBackend{}
 	session := &sessionHandler{
-		config: Config{},
+		config:  Config{},
 		backend: backend,
 		sshConnection: &sshConnectionHandler{
-			lock:         &sync.Mutex{},
+			lock: &sync.Mutex{},
 		},
 	}
 
@@ -182,8 +180,8 @@ func TestSubsystem(t *testing.T) {
 
 // region Dummy backend
 type dummyBackend struct {
-	exit chan struct{}
-	env map[string]string
+	exit             chan struct{}
+	env              map[string]string
 	commandsExecuted []string
 }
 
@@ -276,4 +274,5 @@ func (d *dummyBackend) OnSignal(_ uint64, _ string) error {
 func (d *dummyBackend) OnWindow(_ uint64, _ uint32, _ uint32, _ uint32, _ uint32) error {
 	return nil
 }
+
 // endregion

@@ -35,9 +35,9 @@ func (n *networkHandler) OnHandshakeSuccess(username string) (
 		return nil, failureReason
 	}
 	return &sshConnectionHandler{
-		config: n.config,
+		config:  n.config,
 		backend: backend,
-		lock: &sync.Mutex{},
+		lock:    &sync.Mutex{},
 	}, nil
 }
 

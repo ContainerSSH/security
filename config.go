@@ -138,7 +138,7 @@ type TTYConfig struct {
 }
 
 // Validate validates the TTY configuration
-func (t TTYConfig) Validate() error  {
+func (t TTYConfig) Validate() error {
 	if err := t.Mode.Validate(); err != nil {
 		return fmt.Errorf("invalid mode (%w)", err)
 	}
@@ -156,7 +156,7 @@ type SignalConfig struct {
 }
 
 // Validate validates the signal configuration
-func (s SignalConfig) Validate() error  {
+func (s SignalConfig) Validate() error {
 	if err := s.Mode.Validate(); err != nil {
 		return fmt.Errorf("invalid mode (%w)", err)
 	}
