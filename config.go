@@ -7,7 +7,7 @@ import (
 type Config struct {
 	// DefaultMode sets the default execution policy for all other commands. It is recommended to set this to "disable"
 	// if for restricted setups to avoid accidentally allowing new features coming in with version upgrades.
-	DefaultMode ExecutionPolicy `json:"defaultMode" yaml:"defaultMode" default:"allow"`
+	DefaultMode ExecutionPolicy `json:"defaultMode" yaml:"defaultMode"`
 
 	// ForceCommand behaves similar to the OpenSSH ForceCommand option. When set this command overrides any command
 	// requested by the client and executes this command instead. The original command supplied by the client will be
