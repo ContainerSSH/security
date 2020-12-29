@@ -28,7 +28,7 @@ func (s *sshConnectionHandler) OnSessionChannel(
 ) (channel sshserver.SessionChannelHandler, failureReason sshserver.ChannelRejection) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	if s.sessionCount >= s.config.MaxSessions {
+	if s.config.MaxSessions > -1 && s.sessionCount >= uint(s.config.MaxSessions) {
 		return nil, &ErrTooManySessions{}
 	}
 	backend, err := s.backend.OnSessionChannel(channelID, extraData)

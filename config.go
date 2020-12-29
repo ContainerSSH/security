@@ -32,7 +32,8 @@ type Config struct {
 	Signal SignalConfig `json:"signal" yaml:"signal"`
 
 	// MaxSessions drives how many session channels can be open at the same time for a single network connection.
-	MaxSessions uint `json:"maxSessions" yaml:"maxSessions"`
+	// -1 means unlimited. It is strongly recommended to configure this to a sane value, e.g. 10.
+	MaxSessions int `json:"maxSessions" yaml:"maxSessions" default:"-1"`
 }
 
 // Validate validates a shell configuration
@@ -57,6 +58,9 @@ func (c Config) Validate() error {
 	}
 	if err := c.Signal.Validate(); err != nil {
 		return fmt.Errorf("invalid signal configuration (%w)", err)
+	}
+	if c.MaxSessions < -1 {
+		return fmt.Errorf("invalid maxSessions setting: %d", c.MaxSessions)
 	}
 	return nil
 }

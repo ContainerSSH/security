@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.2: Default value for maxSessions
+
+This release adds an unlimited default value for the `maxSessions` setting.
+
 ## 0.9.1: Bugfixing the default value
 
 The previous release contained an invalid default configuration for the `defaultMode` setting. This has now been removed.

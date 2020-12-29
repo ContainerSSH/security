@@ -20,7 +20,7 @@ func TestMaxSessions(t *testing.T) {
 		lock:    &sync.Mutex{},
 	}
 
-	for i := uint(0); i < ssh.config.MaxSessions; i++ {
+	for i := 0; i < ssh.config.MaxSessions; i++ {
 		handler, err := ssh.OnSessionChannel(uint64(i), []byte{})
 		assert.NoError(t, err)
 		assert.NoError(
@@ -31,7 +31,7 @@ func TestMaxSessions(t *testing.T) {
 	}
 	_, err := ssh.OnSessionChannel(uint64(ssh.config.MaxSessions), []byte{})
 	assert.Error(t, err)
-	for i := uint(0); i < ssh.config.MaxSessions; i++ {
+	for i := 0; i < ssh.config.MaxSessions; i++ {
 		backend.exitChannel <- struct{}{}
 	}
 }
@@ -40,17 +40,17 @@ type dummySSHBackend struct {
 	exitChannel chan struct{}
 }
 
-func (d *dummySSHBackend) OnUnsupportedGlobalRequest(requestID uint64, requestType string, payload []byte) {
+func (d *dummySSHBackend) OnUnsupportedGlobalRequest(_ uint64, _ string, _ []byte) {
 	panic("implement me")
 }
 
-func (d *dummySSHBackend) OnUnsupportedChannel(channelID uint64, channelType string, extraData []byte) {
+func (d *dummySSHBackend) OnUnsupportedChannel(_ uint64, _ string, _ []byte) {
 	panic("implement me")
 }
 
 func (d *dummySSHBackend) OnSessionChannel(
-	channelID uint64,
-	extraData []byte,
+	_ uint64,
+	_ []byte,
 ) (channel sshserver.SessionChannelHandler, failureReason sshserver.ChannelRejection) {
 	return &dummyBackend{
 		exit: d.exitChannel,
