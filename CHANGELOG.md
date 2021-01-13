@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.3: Bumping sshserver
+
+This release adds compatibility fixes to v0.9.16.
+
 ## 0.9.2: Default value for maxSessions
 
 This release adds an unlimited default value for the `maxSessions` setting.

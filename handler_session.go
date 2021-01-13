@@ -2,12 +2,13 @@ package security
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/containerssh/sshserver"
 )
 
 type sessionHandler struct {
+	sshserver.AbstractSessionChannelHandler
+
 	config        Config
 	backend       sshserver.SessionChannelHandler
 	sshConnection *sshConnectionHandler
@@ -53,17 +54,15 @@ func (s *sessionHandler) OnEnvRequest(requestID uint64, name string, value strin
 	case ExecutionPolicyFilter:
 		if s.contains(s.config.Env.Allow, name) {
 			return s.backend.OnEnvRequest(requestID, name, value)
-		} else {
-			return fmt.Errorf("environment variable rejected")
 		}
+		return fmt.Errorf("environment variable rejected")
 	case ExecutionPolicyEnable:
 		fallthrough
 	default:
 		if !s.contains(s.config.Env.Deny, name) {
 			return s.backend.OnEnvRequest(requestID, name, value)
-		} else {
-			return fmt.Errorf("environment variable rejected")
 		}
+		return fmt.Errorf("environment variable rejected")
 	}
 }
 
@@ -92,10 +91,6 @@ func (s *sessionHandler) OnPtyRequest(
 func (s *sessionHandler) OnExecRequest(
 	requestID uint64,
 	program string,
-	stdin io.Reader,
-	stdout io.Writer,
-	stderr io.Writer,
-	onExit func(exitStatus sshserver.ExitStatus),
 ) error {
 	mode := s.getPolicy(s.config.Command.Mode)
 	switch mode {
@@ -110,27 +105,16 @@ func (s *sessionHandler) OnExecRequest(
 	default:
 	}
 	if s.config.ForceCommand == "" {
-		return s.backend.OnExecRequest(requestID, program, stdin, stdout, stderr, onExit)
+		return s.backend.OnExecRequest(requestID, program)
 	}
 	if err := s.backend.OnEnvRequest(requestID, "SSH_ORIGINAL_COMMAND", program); err != nil {
 		return fmt.Errorf("failed to execute command")
 	}
-	return s.backend.OnExecRequest(requestID, s.config.ForceCommand, stdin, stdout, stderr,
-		func(exitStatus sshserver.ExitStatus) {
-			s.sshConnection.lock.Lock()
-			s.sshConnection.sessionCount--
-			s.sshConnection.lock.Unlock()
-			onExit(exitStatus)
-		},
-	)
+	return s.backend.OnExecRequest(requestID, s.config.ForceCommand)
 }
 
 func (s *sessionHandler) OnShell(
 	requestID uint64,
-	stdin io.Reader,
-	stdout io.Writer,
-	stderr io.Writer,
-	onExit func(exitStatus sshserver.ExitStatus),
 ) error {
 	mode := s.getPolicy(s.config.Shell.Mode)
 	switch mode {
@@ -143,25 +127,14 @@ func (s *sessionHandler) OnShell(
 	default:
 	}
 	if s.config.ForceCommand == "" {
-		return s.backend.OnShell(requestID, stdin, stdout, stderr, onExit)
+		return s.backend.OnShell(requestID)
 	}
-	return s.backend.OnExecRequest(requestID, s.config.ForceCommand, stdin, stdout, stderr,
-		func(exitStatus sshserver.ExitStatus) {
-			s.sshConnection.lock.Lock()
-			s.sshConnection.sessionCount--
-			s.sshConnection.lock.Unlock()
-			onExit(exitStatus)
-		},
-	)
+	return s.backend.OnExecRequest(requestID, s.config.ForceCommand)
 }
 
 func (s *sessionHandler) OnSubsystem(
 	requestID uint64,
 	subsystem string,
-	stdin io.Reader,
-	stdout io.Writer,
-	stderr io.Writer,
-	onExit func(exitStatus sshserver.ExitStatus),
 ) error {
 	mode := s.getPolicy(s.config.Subsystem.Mode)
 	switch mode {
@@ -178,19 +151,12 @@ func (s *sessionHandler) OnSubsystem(
 	default:
 	}
 	if s.config.ForceCommand == "" {
-		return s.backend.OnSubsystem(requestID, subsystem, stdin, stdout, stderr, onExit)
+		return s.backend.OnSubsystem(requestID, subsystem)
 	}
 	if err := s.backend.OnEnvRequest(requestID, "SSH_ORIGINAL_COMMAND", subsystem); err != nil {
 		return fmt.Errorf("failed to execute command")
 	}
-	return s.backend.OnExecRequest(requestID, s.config.ForceCommand, stdin, stdout, stderr,
-		func(exitStatus sshserver.ExitStatus) {
-			s.sshConnection.lock.Lock()
-			s.sshConnection.sessionCount--
-			s.sshConnection.lock.Unlock()
-			onExit(exitStatus)
-		},
-	)
+	return s.backend.OnExecRequest(requestID, s.config.ForceCommand)
 }
 
 func (s *sessionHandler) OnSignal(requestID uint64, signal string) error {
@@ -201,17 +167,15 @@ func (s *sessionHandler) OnSignal(requestID uint64, signal string) error {
 	case ExecutionPolicyFilter:
 		if s.contains(s.config.Signal.Allow, signal) {
 			return s.backend.OnSignal(requestID, signal)
-		} else {
-			return fmt.Errorf("signal rejected")
 		}
+		return fmt.Errorf("signal rejected")
 	case ExecutionPolicyEnable:
 		fallthrough
 	default:
 		if !s.contains(s.config.Signal.Deny, signal) {
 			return s.backend.OnSignal(requestID, signal)
-		} else {
-			return fmt.Errorf("signal rejected")
 		}
+		return fmt.Errorf("signal rejected")
 	}
 }
 

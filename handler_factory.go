@@ -6,6 +6,8 @@ import (
 	"github.com/containerssh/sshserver"
 )
 
+// New creates a new security backend proxy.
+//goland:noinspection GoUnusedExportedFunction
 func New(
 	config Config,
 	backend sshserver.NetworkConnectionHandler,

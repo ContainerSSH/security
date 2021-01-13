@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// Config is the configuration structure for security settings.
 type Config struct {
 	// DefaultMode sets the default execution policy for all other commands. It is recommended to set this to "disable"
 	// if for restricted setups to avoid accidentally allowing new features coming in with version upgrades.

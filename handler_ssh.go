@@ -8,6 +8,8 @@ import (
 )
 
 type sshConnectionHandler struct {
+	sshserver.AbstractSSHConnectionHandler
+
 	config       Config
 	backend      sshserver.SSHConnectionHandler
 	sessionCount uint
@@ -25,13 +27,14 @@ func (s *sshConnectionHandler) OnUnsupportedChannel(channelID uint64, channelTyp
 func (s *sshConnectionHandler) OnSessionChannel(
 	channelID uint64,
 	extraData []byte,
+	session sshserver.SessionChannel,
 ) (channel sshserver.SessionChannelHandler, failureReason sshserver.ChannelRejection) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	if s.config.MaxSessions > -1 && s.sessionCount >= uint(s.config.MaxSessions) {
 		return nil, &ErrTooManySessions{}
 	}
-	backend, err := s.backend.OnSessionChannel(channelID, extraData)
+	backend, err := s.backend.OnSessionChannel(channelID, extraData, session)
 	if err != nil {
 		return nil, err
 	}

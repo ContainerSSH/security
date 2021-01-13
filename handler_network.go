@@ -7,6 +7,8 @@ import (
 )
 
 type networkHandler struct {
+	sshserver.AbstractNetworkConnectionHandler
+
 	config  Config
 	backend sshserver.NetworkConnectionHandler
 }
