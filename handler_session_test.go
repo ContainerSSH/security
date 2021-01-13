@@ -1,11 +1,10 @@
 package security
 
 import (
-	"io"
+	"context"
 	"sync"
 	"testing"
 
-	"github.com/containerssh/sshserver"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -68,24 +67,22 @@ func TestCommand(t *testing.T) {
 		},
 	}
 
-	exit := func(exitStatus sshserver.ExitStatus) {}
-
 	session.config.Command.Allow = []string{"/bin/bash"}
 	session.config.Command.Mode = ExecutionPolicyDisable
-	assert.Error(t, session.OnExecRequest(1, "/bin/bash", nil, nil, nil, exit))
+	assert.Error(t, session.OnExecRequest(1, "/bin/bash"))
 
 	session.config.Command.Mode = ExecutionPolicyFilter
-	assert.NoError(t, session.OnExecRequest(1, "/bin/bash", nil, nil, nil, exit))
-	assert.Error(t, session.OnExecRequest(1, "/bin/sh", nil, nil, nil, exit))
+	assert.NoError(t, session.OnExecRequest(1, "/bin/bash"))
+	assert.Error(t, session.OnExecRequest(1, "/bin/sh"))
 
 	session.config.Command.Mode = ExecutionPolicyEnable
-	assert.NoError(t, session.OnExecRequest(1, "/bin/bash", nil, nil, nil, exit))
-	assert.NoError(t, session.OnExecRequest(1, "/bin/sh", nil, nil, nil, exit))
+	assert.NoError(t, session.OnExecRequest(1, "/bin/bash"))
+	assert.NoError(t, session.OnExecRequest(1, "/bin/sh"))
 
 	session.config.Shell.Mode = ExecutionPolicyEnable
 	backend.commandsExecuted = []string{}
 	backend.env = map[string]string{}
-	assert.NoError(t, session.OnExecRequest(1, "/bin/bash", nil, nil, nil, exit))
+	assert.NoError(t, session.OnExecRequest(1, "/bin/bash"))
 	assert.Equal(t, []string{"/bin/bash"}, backend.commandsExecuted)
 	assert.Equal(t, map[string]string{}, backend.env)
 
@@ -93,7 +90,7 @@ func TestCommand(t *testing.T) {
 	session.config.ForceCommand = "/bin/wrapper"
 	backend.commandsExecuted = []string{}
 	backend.env = map[string]string{}
-	assert.NoError(t, session.OnExecRequest(1, "/bin/bash", nil, nil, nil, exit))
+	assert.NoError(t, session.OnExecRequest(1, "/bin/bash"))
 	assert.Equal(t, []string{"/bin/wrapper"}, backend.commandsExecuted)
 	assert.Equal(t, map[string]string{"SSH_ORIGINAL_COMMAND": "/bin/bash"}, backend.env)
 }
@@ -108,21 +105,19 @@ func TestShell(t *testing.T) {
 		},
 	}
 
-	exit := func(exitStatus sshserver.ExitStatus) {}
-
 	session.config.Shell.Mode = ExecutionPolicyDisable
-	assert.Error(t, session.OnShell(1, nil, nil, nil, exit))
+	assert.Error(t, session.OnShell(1))
 
 	session.config.Shell.Mode = ExecutionPolicyFilter
-	assert.Error(t, session.OnShell(1, nil, nil, nil, exit))
+	assert.Error(t, session.OnShell(1))
 
 	session.config.Shell.Mode = ExecutionPolicyEnable
-	assert.NoError(t, session.OnShell(1, nil, nil, nil, exit))
+	assert.NoError(t, session.OnShell(1))
 
 	session.config.Shell.Mode = ExecutionPolicyEnable
 	backend.commandsExecuted = []string{}
 	backend.env = map[string]string{}
-	assert.NoError(t, session.OnShell(1, nil, nil, nil, exit))
+	assert.NoError(t, session.OnShell(1))
 	assert.Equal(t, []string{"shell"}, backend.commandsExecuted)
 	assert.Equal(t, map[string]string{}, backend.env)
 
@@ -130,7 +125,7 @@ func TestShell(t *testing.T) {
 	session.config.ForceCommand = "/bin/wrapper"
 	backend.commandsExecuted = []string{}
 	backend.env = map[string]string{}
-	assert.NoError(t, session.OnShell(1, nil, nil, nil, exit))
+	assert.NoError(t, session.OnShell(1))
 	assert.Equal(t, []string{"/bin/wrapper"}, backend.commandsExecuted)
 }
 
@@ -144,27 +139,25 @@ func TestSubsystem(t *testing.T) {
 		},
 	}
 
-	exit := func(exitStatus sshserver.ExitStatus) {}
-
 	session.config.Subsystem.Mode = ExecutionPolicyDisable
-	assert.Error(t, session.OnSubsystem(1, "sftp", nil, nil, nil, exit))
+	assert.Error(t, session.OnSubsystem(1, "sftp"))
 
 	session.config.Subsystem.Mode = ExecutionPolicyFilter
-	assert.Error(t, session.OnSubsystem(1, "sftp", nil, nil, nil, exit))
+	assert.Error(t, session.OnSubsystem(1, "sftp"))
 	session.config.Subsystem.Allow = []string{"sftp"}
-	assert.NoError(t, session.OnSubsystem(1, "sftp", nil, nil, nil, exit))
+	assert.NoError(t, session.OnSubsystem(1, "sftp"))
 
 	session.config.Subsystem.Mode = ExecutionPolicyEnable
 	session.config.Subsystem.Allow = []string{}
-	assert.NoError(t, session.OnSubsystem(1, "sftp", nil, nil, nil, exit))
+	assert.NoError(t, session.OnSubsystem(1, "sftp"))
 	session.config.Subsystem.Deny = []string{"sftp"}
-	assert.Error(t, session.OnSubsystem(1, "sftp", nil, nil, nil, exit))
+	assert.Error(t, session.OnSubsystem(1, "sftp"))
 
 	session.config.Subsystem.Mode = ExecutionPolicyEnable
 	backend.commandsExecuted = []string{}
 	session.config.Subsystem.Deny = []string{}
 	backend.env = map[string]string{}
-	assert.NoError(t, session.OnSubsystem(1, "sftp", nil, nil, nil, exit))
+	assert.NoError(t, session.OnSubsystem(1, "sftp"))
 	assert.Equal(t, []string{"sftp"}, backend.commandsExecuted)
 	assert.Equal(t, map[string]string{}, backend.env)
 
@@ -173,7 +166,7 @@ func TestSubsystem(t *testing.T) {
 	backend.commandsExecuted = []string{}
 	session.config.Subsystem.Deny = []string{}
 	backend.env = map[string]string{}
-	assert.NoError(t, session.OnSubsystem(1, "sftp", nil, nil, nil, exit))
+	assert.NoError(t, session.OnSubsystem(1, "sftp"))
 	assert.Equal(t, []string{"/bin/wrapper"}, backend.commandsExecuted)
 	assert.Equal(t, map[string]string{"SSH_ORIGINAL_COMMAND": "sftp"}, backend.env)
 }
@@ -183,6 +176,12 @@ type dummyBackend struct {
 	exit             chan struct{}
 	env              map[string]string
 	commandsExecuted []string
+}
+
+func (d *dummyBackend) OnClose() {
+}
+
+func (d *dummyBackend) OnShutdown(_ context.Context) {
 }
 
 func (d *dummyBackend) OnUnsupportedChannelRequest(_ uint64, _ string, _ []byte) {
@@ -220,22 +219,13 @@ func (d *dummyBackend) OnPtyRequest(
 func (d *dummyBackend) OnExecRequest(
 	_ uint64,
 	program string,
-	_ io.Reader,
-	_ io.Writer,
-	_ io.Writer,
-	onExit func(exitStatus sshserver.ExitStatus),
 ) error {
 	d.commandsExecuted = append(d.commandsExecuted, program)
-	go onExit(0)
 	return nil
 }
 
 func (d *dummyBackend) OnShell(
 	_ uint64,
-	_ io.Reader,
-	_ io.Writer,
-	_ io.Writer,
-	onExit func(exitStatus sshserver.ExitStatus),
 ) error {
 	d.commandsExecuted = append(d.commandsExecuted, "shell")
 
@@ -243,7 +233,6 @@ func (d *dummyBackend) OnShell(
 		if d.exit != nil {
 			<-d.exit
 		}
-		onExit(0)
 	}()
 	return nil
 }
@@ -251,10 +240,6 @@ func (d *dummyBackend) OnShell(
 func (d *dummyBackend) OnSubsystem(
 	_ uint64,
 	subsystem string,
-	_ io.Reader,
-	_ io.Writer,
-	_ io.Writer,
-	onExit func(exitStatus sshserver.ExitStatus),
 ) error {
 	d.commandsExecuted = append(d.commandsExecuted, subsystem)
 
@@ -262,7 +247,6 @@ func (d *dummyBackend) OnSubsystem(
 		if d.exit != nil {
 			<-d.exit
 		}
-		onExit(0)
 	}()
 	return nil
 }
