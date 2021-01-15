@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.6: Bumping release
+
+Bumping release to work around go caching.
+
 ## 0.9.5: Bumping release
 
 Bumping release to work around go caching.
