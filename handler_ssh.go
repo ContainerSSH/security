@@ -1,6 +1,7 @@
 package security
 
 import (
+	"context"
 	"sync"
 
 	"github.com/containerssh/sshserver"
@@ -8,12 +9,14 @@ import (
 )
 
 type sshConnectionHandler struct {
-	sshserver.AbstractSSHConnectionHandler
-
 	config       Config
 	backend      sshserver.SSHConnectionHandler
 	sessionCount uint
 	lock         *sync.Mutex
+}
+
+func (s *sshConnectionHandler) OnShutdown(shutdownContext context.Context) {
+	s.backend.OnShutdown(shutdownContext)
 }
 
 func (s *sshConnectionHandler) OnUnsupportedGlobalRequest(requestID uint64, requestType string, payload []byte) {

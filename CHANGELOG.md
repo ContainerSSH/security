@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.4: Adding shutdown hooks
+
+This release adds shutdown hook passing through to the backend.
+
 ## 0.9.3: Bumping sshserver
 
 This release adds compatibility fixes to v0.9.16.

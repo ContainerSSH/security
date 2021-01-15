@@ -1,17 +1,24 @@
 package security
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/containerssh/sshserver"
 )
 
 type sessionHandler struct {
-	sshserver.AbstractSessionChannelHandler
-
 	config        Config
 	backend       sshserver.SessionChannelHandler
 	sshConnection *sshConnectionHandler
+}
+
+func (s *sessionHandler) OnClose() {
+	s.backend.OnClose()
+}
+
+func (s *sessionHandler) OnShutdown(shutdownContext context.Context) {
+	s.backend.OnShutdown(shutdownContext)
 }
 
 func (s *sessionHandler) OnUnsupportedChannelRequest(requestID uint64, requestType string, payload []byte) {

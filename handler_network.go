@@ -1,16 +1,32 @@
 package security
 
 import (
+	"context"
 	"sync"
 
 	"github.com/containerssh/sshserver"
 )
 
 type networkHandler struct {
-	sshserver.AbstractNetworkConnectionHandler
-
 	config  Config
 	backend sshserver.NetworkConnectionHandler
+}
+
+func (n *networkHandler) OnAuthKeyboardInteractive(
+	user string,
+	challenge func(
+		instruction string,
+		questions sshserver.KeyboardInteractiveQuestions,
+	) (answers sshserver.KeyboardInteractiveAnswers, err error),
+) (response sshserver.AuthResponse, reason error) {
+	return n.backend.OnAuthKeyboardInteractive(
+		user,
+		challenge,
+	)
+}
+
+func (n *networkHandler) OnShutdown(shutdownContext context.Context) {
+	n.backend.OnShutdown(shutdownContext)
 }
 
 func (n *networkHandler) OnAuthPassword(username string, password []byte) (
