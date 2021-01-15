@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.5: Bumping release
+
+Bumping release to work around go caching.
+
 ## 0.9.4: Adding shutdown hooks
 
 This release adds shutdown hook passing through to the backend.
