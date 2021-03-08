@@ -37,7 +37,11 @@ func (s *sshConnectionHandler) OnSessionChannel(
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	if s.config.MaxSessions > -1 && s.sessionCount >= uint(s.config.MaxSessions) {
-		return nil, &ErrTooManySessions{}
+		err := &ErrTooManySessions{
+			labels: log.Labels(map[log.LabelName]log.LabelValue{}),
+		}
+		s.logger.Debug(err)
+		return nil, err
 	}
 	backend, err := s.backend.OnSessionChannel(channelID, extraData, session)
 	if err != nil {
@@ -54,16 +58,48 @@ func (s *sshConnectionHandler) OnSessionChannel(
 
 // ErrTooManySessions indicates that too many sessions were opened in the same connection.
 type ErrTooManySessions struct {
+	labels log.Labels
+}
+
+// Label adds a label to the message.
+func (e *ErrTooManySessions) Label(name log.LabelName, value log.LabelValue) log.Message {
+	e.labels[name] = value
+	return e
+}
+
+// Code returns the error code.
+func (e *ErrTooManySessions) Code() string {
+	return EMaxSessions
+}
+
+// Labels returns the list of labels for this message.
+func (e *ErrTooManySessions) Labels() log.Labels {
+	return e.labels
 }
 
 // Error contains the error for the logs.
 func (e *ErrTooManySessions) Error() string {
-	return "too many sessions"
+	return "Too many sessions."
+}
+
+// Explanation is the message intended for the administrator.
+func (e *ErrTooManySessions) Explanation() string {
+	return "The user has opened too many sessions."
+}
+
+// UserMessage contains a message intended for the user.
+func (e *ErrTooManySessions) UserMessage() string {
+	return "Too many sessions."
+}
+
+// String returns the string representation of this message.
+func (e *ErrTooManySessions) String() string {
+	return e.UserMessage()
 }
 
 // Message contains a message intended for the user.
 func (e *ErrTooManySessions) Message() string {
-	return "too many sessions"
+	return "Too many sessions."
 }
 
 // Reason contains the rejection code.

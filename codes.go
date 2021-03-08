@@ -25,3 +25,6 @@ const EEnvRejected = "SECURITY_ENV_REJECTED"
 
 // ContainerSSH rejected delivering a signal because it does not pass the security settings.
 const ESignalRejected = "SECURITY_SIGNAL_REJECTED"
+
+// The client has reached the maximum number of configured sessions, the new session request is therefore rejected.
+const EMaxSessions = "SECURITY_MAX_SESSIONS"

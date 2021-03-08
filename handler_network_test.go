@@ -6,6 +6,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/containerssh/log"
 	"github.com/containerssh/sshserver"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,13 +21,14 @@ func TestMaxSessions(t *testing.T) {
 		},
 		backend: backend,
 		lock:    &sync.Mutex{},
+		logger:  log.NewTestLogger(t),
 	}
 
 	for i := 0; i < ssh.config.MaxSessions; i++ {
 		handler, err := ssh.OnSessionChannel(uint64(i), []byte{}, &sessionChannel{})
 		assert.NoError(t, err)
 		assert.NoError(
-			t, handler.OnShell(0,),
+			t, handler.OnShell(0),
 		)
 	}
 	_, err := ssh.OnSessionChannel(uint64(ssh.config.MaxSessions), []byte{}, &sessionChannel{})
@@ -37,7 +39,6 @@ func TestMaxSessions(t *testing.T) {
 }
 
 type sessionChannel struct {
-
 }
 
 func (s *sessionChannel) Stdin() io.Reader {
@@ -52,11 +53,11 @@ func (s *sessionChannel) Stderr() io.Writer {
 	panic("implement me")
 }
 
-func (s *sessionChannel) ExitStatus(code uint32) {
+func (s *sessionChannel) ExitStatus(_ uint32) {
 	panic("implement me")
 }
 
-func (s *sessionChannel) ExitSignal(signal string, coreDumped bool, errorMessage string, languageTag string) {
+func (s *sessionChannel) ExitSignal(_ string, _ bool, _ string, _ string) {
 	panic("implement me")
 }
 
