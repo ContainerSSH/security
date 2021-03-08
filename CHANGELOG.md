@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.7: Logging
+
+This release adds debug logging for the security module.
+
 ## 0.9.6: Bumping release
 
 Bumping release to work around go caching.

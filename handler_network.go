@@ -4,12 +4,14 @@ import (
 	"context"
 	"sync"
 
+	"github.com/containerssh/log"
 	"github.com/containerssh/sshserver"
 )
 
 type networkHandler struct {
 	config  Config
 	backend sshserver.NetworkConnectionHandler
+	logger  log.Logger
 }
 
 func (n *networkHandler) OnAuthKeyboardInteractive(
@@ -56,6 +58,7 @@ func (n *networkHandler) OnHandshakeSuccess(username string) (
 		config:  n.config,
 		backend: backend,
 		lock:    &sync.Mutex{},
+		logger:  n.logger,
 	}, nil
 }
 

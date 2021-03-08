@@ -2,8 +2,8 @@ package security
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/containerssh/log"
 	"github.com/containerssh/sshserver"
 )
 
@@ -11,6 +11,7 @@ type sessionHandler struct {
 	config        Config
 	backend       sshserver.SessionChannelHandler
 	sshConnection *sshConnectionHandler
+	logger        log.Logger
 }
 
 func (s *sessionHandler) OnClose() {
@@ -57,19 +58,37 @@ func (s *sessionHandler) OnEnvRequest(requestID uint64, name string, value strin
 	mode := s.getPolicy(s.config.Env.Mode)
 	switch mode {
 	case ExecutionPolicyDisable:
-		return fmt.Errorf("environment variable rejected")
+		err := log.UserMessage(
+			EEnvRejected,
+			"Environment variable setting rejected.",
+			"Setting an environment variable is rejected because it is disabled in the security settings.",
+		).Label("name", name)
+		s.logger.Debug(err)
+		return err
 	case ExecutionPolicyFilter:
 		if s.contains(s.config.Env.Allow, name) {
 			return s.backend.OnEnvRequest(requestID, name, value)
 		}
-		return fmt.Errorf("environment variable rejected")
+		err := log.UserMessage(
+			EEnvRejected,
+			"Environment variable setting rejected.",
+			"Setting an environment variable is rejected because it does not match the allow list.",
+		).Label("name", name)
+		s.logger.Debug(err)
+		return err
 	case ExecutionPolicyEnable:
 		fallthrough
 	default:
 		if !s.contains(s.config.Env.Deny, name) {
 			return s.backend.OnEnvRequest(requestID, name, value)
 		}
-		return fmt.Errorf("environment variable rejected")
+		err := log.UserMessage(
+			EEnvRejected,
+			"Environment variable setting rejected.",
+			"Setting an environment variable is rejected because it matches the deny list.",
+		).Label("name", name)
+		s.logger.Debug(err)
+		return err
 	}
 }
 
@@ -85,9 +104,15 @@ func (s *sessionHandler) OnPtyRequest(
 	mode := s.getPolicy(s.config.TTY.Mode)
 	switch mode {
 	case ExecutionPolicyDisable:
-		return fmt.Errorf("TTY request rejected")
+		fallthrough
 	case ExecutionPolicyFilter:
-		return fmt.Errorf("TTY request rejected")
+		err := log.UserMessage(
+			ETTYRejected,
+			"TTY allocation disabled.",
+			"TTY allocation is disabled in the security settings.",
+		)
+		s.logger.Debug(err)
+		return err
 	case ExecutionPolicyEnable:
 		fallthrough
 	default:
@@ -102,10 +127,22 @@ func (s *sessionHandler) OnExecRequest(
 	mode := s.getPolicy(s.config.Command.Mode)
 	switch mode {
 	case ExecutionPolicyDisable:
-		return fmt.Errorf("command execution rejected")
+		err := log.UserMessage(
+			EExecRejected,
+			"Command execution disabled.",
+			"Command execution is disabled in the security settings.",
+		)
+		s.logger.Debug(err)
+		return err
 	case ExecutionPolicyFilter:
 		if !s.contains(s.config.Command.Allow, program) {
-			return fmt.Errorf("command execution rejected")
+			err := log.UserMessage(
+				EExecRejected,
+				"Command execution disabled.",
+				"The specified command passed from the client does not match the specified allow list.",
+			)
+			s.logger.Debug(err)
+			return err
 		}
 	case ExecutionPolicyEnable:
 		fallthrough
@@ -115,8 +152,20 @@ func (s *sessionHandler) OnExecRequest(
 		return s.backend.OnExecRequest(requestID, program)
 	}
 	if err := s.backend.OnEnvRequest(requestID, "SSH_ORIGINAL_COMMAND", program); err != nil {
-		return fmt.Errorf("failed to execute command")
+		err := log.WrapUser(
+			err,
+			EFailedSetEnv,
+			"Could not execute program.",
+			"Command execution failed because the security layer could not set the SSH_ORIGINAL_COMMAND variable.",
+		)
+		s.logger.Error(err)
+		return err
 	}
+	s.logger.Debug(log.NewMessage(
+		MForcingCommand,
+		"Forcing command execution to %s",
+		s.config.ForceCommand,
+	))
 	return s.backend.OnExecRequest(requestID, s.config.ForceCommand)
 }
 
@@ -126,9 +175,15 @@ func (s *sessionHandler) OnShell(
 	mode := s.getPolicy(s.config.Shell.Mode)
 	switch mode {
 	case ExecutionPolicyDisable:
-		return fmt.Errorf("shell execution rejected")
+		fallthrough
 	case ExecutionPolicyFilter:
-		return fmt.Errorf("shell execution rejected")
+		err := log.UserMessage(
+			EShellRejected,
+			"Shell execution disabled.",
+			"Shell execution is disabled in the security settings.",
+		)
+		s.logger.Debug(err)
+		return err
 	case ExecutionPolicyEnable:
 		fallthrough
 	default:
@@ -136,6 +191,11 @@ func (s *sessionHandler) OnShell(
 	if s.config.ForceCommand == "" {
 		return s.backend.OnShell(requestID)
 	}
+	s.logger.Debug(log.NewMessage(
+		MForcingCommand,
+		"Forcing command execution to %s",
+		s.config.ForceCommand,
+	))
 	return s.backend.OnExecRequest(requestID, s.config.ForceCommand)
 }
 
@@ -146,14 +206,32 @@ func (s *sessionHandler) OnSubsystem(
 	mode := s.getPolicy(s.config.Subsystem.Mode)
 	switch mode {
 	case ExecutionPolicyDisable:
-		return fmt.Errorf("subsystem execution rejected")
+		err := log.UserMessage(
+			ESubsystemRejected,
+			"Subsystem execution disabled.",
+			"Subsystem execution is disabled in the security settings.",
+		)
+		s.logger.Debug(err)
+		return err
 	case ExecutionPolicyFilter:
 		if !s.contains(s.config.Subsystem.Allow, subsystem) {
-			return fmt.Errorf("subsystem execution rejected")
+			err := log.UserMessage(
+				ESubsystemRejected,
+				"Subsystem execution disabled.",
+				"The specified subsystem does not match the allowed subsystems list.",
+			)
+			s.logger.Debug(err)
+			return err
 		}
 	case ExecutionPolicyEnable:
 		if s.contains(s.config.Subsystem.Deny, subsystem) {
-			return fmt.Errorf("subsystem execution rejected")
+			err := log.UserMessage(
+				ESubsystemRejected,
+				"Subsystem execution disabled.",
+				"The subsystem execution is rejected because the specified subsystem matches the deny list.",
+			)
+			s.logger.Debug(err)
+			return err
 		}
 	default:
 	}
@@ -161,8 +239,20 @@ func (s *sessionHandler) OnSubsystem(
 		return s.backend.OnSubsystem(requestID, subsystem)
 	}
 	if err := s.backend.OnEnvRequest(requestID, "SSH_ORIGINAL_COMMAND", subsystem); err != nil {
-		return fmt.Errorf("failed to execute command")
+		err := log.WrapUser(
+			err,
+			EFailedSetEnv,
+			"Could not execute program.",
+			"Command execution failed because the security layer could not set the SSH_ORIGINAL_COMMAND variable.",
+		)
+		s.logger.Error(err)
+		return err
 	}
+	s.logger.Debug(log.NewMessage(
+		MForcingCommand,
+		"Forcing command execution to %s",
+		s.config.ForceCommand,
+	))
 	return s.backend.OnExecRequest(requestID, s.config.ForceCommand)
 }
 
@@ -170,19 +260,37 @@ func (s *sessionHandler) OnSignal(requestID uint64, signal string) error {
 	mode := s.getPolicy(s.config.Shell.Mode)
 	switch mode {
 	case ExecutionPolicyDisable:
-		return fmt.Errorf("signal rejected")
+		err := log.UserMessage(
+			ESignalRejected,
+			"Sending signals is rejected.",
+			"Sending the signal is rejected because signal delivery is disabled.",
+		)
+		s.logger.Debug(err)
+		return err
 	case ExecutionPolicyFilter:
 		if s.contains(s.config.Signal.Allow, signal) {
 			return s.backend.OnSignal(requestID, signal)
 		}
-		return fmt.Errorf("signal rejected")
+		err := log.UserMessage(
+			ESignalRejected,
+			"Sending signals is rejected.",
+			"Sending the signal is rejected because the specified signal does not match the allow list.",
+		)
+		s.logger.Debug(err)
+		return err
 	case ExecutionPolicyEnable:
 		fallthrough
 	default:
 		if !s.contains(s.config.Signal.Deny, signal) {
 			return s.backend.OnSignal(requestID, signal)
 		}
-		return fmt.Errorf("signal rejected")
+		err := log.UserMessage(
+			ESignalRejected,
+			"Sending signals is rejected.",
+			"Sending the signal is rejected because the specified signal matches the deny list.",
+		)
+		s.logger.Debug(err)
+		return err
 	}
 }
 

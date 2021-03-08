@@ -5,6 +5,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/containerssh/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,6 +21,7 @@ func TestEnvRequest(t *testing.T) {
 		sshConnection: &sshConnectionHandler{
 			lock: &sync.Mutex{},
 		},
+		logger: log.NewTestLogger(t),
 	}
 
 	session.config.Env.Mode = ExecutionPolicyEnable
@@ -45,6 +47,7 @@ func TestPTYRequest(t *testing.T) {
 		sshConnection: &sshConnectionHandler{
 			lock: &sync.Mutex{},
 		},
+		logger: log.NewTestLogger(t),
 	}
 
 	session.config.TTY.Mode = ExecutionPolicyEnable
@@ -65,6 +68,7 @@ func TestCommand(t *testing.T) {
 		sshConnection: &sshConnectionHandler{
 			lock: &sync.Mutex{},
 		},
+		logger: log.NewTestLogger(t),
 	}
 
 	session.config.Command.Allow = []string{"/bin/bash"}
@@ -103,6 +107,7 @@ func TestShell(t *testing.T) {
 		sshConnection: &sshConnectionHandler{
 			lock: &sync.Mutex{},
 		},
+		logger: log.NewTestLogger(t),
 	}
 
 	session.config.Shell.Mode = ExecutionPolicyDisable
@@ -137,6 +142,7 @@ func TestSubsystem(t *testing.T) {
 		sshConnection: &sshConnectionHandler{
 			lock: &sync.Mutex{},
 		},
+		logger: log.NewTestLogger(t),
 	}
 
 	session.config.Subsystem.Mode = ExecutionPolicyDisable

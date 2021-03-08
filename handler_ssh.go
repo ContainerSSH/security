@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/containerssh/log"
 	"github.com/containerssh/sshserver"
 	"golang.org/x/crypto/ssh"
 )
@@ -13,6 +14,7 @@ type sshConnectionHandler struct {
 	backend      sshserver.SSHConnectionHandler
 	sessionCount uint
 	lock         *sync.Mutex
+	logger       log.Logger
 }
 
 func (s *sshConnectionHandler) OnShutdown(shutdownContext context.Context) {
@@ -46,6 +48,7 @@ func (s *sshConnectionHandler) OnSessionChannel(
 		config:        s.config,
 		backend:       backend,
 		sshConnection: s,
+		logger:        s.logger,
 	}, nil
 }
 
