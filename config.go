@@ -72,10 +72,10 @@ type EnvConfig struct {
 	Mode ExecutionPolicy `json:"mode" yaml:"mode" default:""`
 	// Allow takes effect when Mode is ExecutionPolicyFilter and only allows the specified environment variables to be
 	// set.
-	Allow []string
+	Allow []string `json:"allow" yaml:"allow"`
 	// Allow takes effect when Mode is not ExecutionPolicyDisable and disallows the specified environment variables to
 	// be set.
-	Deny []string
+	Deny []string `json:"deny" yaml:"deny"`
 }
 
 // Validate validates a shell configuration
@@ -92,7 +92,7 @@ type CommandConfig struct {
 	Mode ExecutionPolicy `json:"mode" yaml:"mode" default:""`
 	// Allow takes effect when Mode is ExecutionPolicyFilter and only allows the specified commands to be
 	// executed. Note that the match an exact match is performed to avoid shell injections, etc.
-	Allow []string
+	Allow []string `json:"allow" yaml:"allow"`
 }
 
 // Validate validates a shell configuration
@@ -123,9 +123,9 @@ type SubsystemConfig struct {
 	Mode ExecutionPolicy `json:"mode" yaml:"mode" default:""`
 	// Allow takes effect when Mode is ExecutionPolicyFilter and only allows the specified subsystems to be
 	// executed.
-	Allow []string
+	Allow []string `json:"allow" yaml:"allow"`
 	// Allow takes effect when Mode is not ExecutionPolicyDisable and disallows the specified subsystems to be executed.
-	Deny []string
+	Deny []string `json:"deny" yaml:"deny"`
 }
 
 // Validate validates a subsystem configuration
@@ -155,9 +155,9 @@ type SignalConfig struct {
 	// Mode configures how to treat signal requests to running programs
 	Mode ExecutionPolicy `json:"mode" yaml:"mode" default:""`
 	// Allow takes effect when Mode is ExecutionPolicyFilter and only allows the specified signals to be forwarded.
-	Allow []string
+	Allow []string `json:"allow" yaml:"allow"`
 	// Allow takes effect when Mode is not ExecutionPolicyDisable and disallows the specified signals to be forwarded.
-	Deny []string
+	Deny []string `json:"deny" allow:"deny"`
 }
 
 // Validate validates the signal configuration
