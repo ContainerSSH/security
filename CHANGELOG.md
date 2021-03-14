@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.8: JSON tags
+
+This release adds JSON tags required for the operator SDK (see [containerssh/containerssh#116](https://github.com/ContainerSSH/ContainerSSH/issues/116))
+
 ## 0.9.7: Logging
 
 This release adds debug logging for the security module.
