@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0: First stable release
+
+This is the first stable release for ContainerSSH 0.4.0.
+
 ## 0.9.8: JSON tags
 
 This release adds JSON tags required for the operator SDK (see [containerssh/containerssh#116](https://github.com/ContainerSSH/ContainerSSH/issues/116))
