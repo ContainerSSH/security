@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/containerssh/log"
-	"github.com/containerssh/sshserver"
+	sshserver "github.com/containerssh/sshserver/v2"
 )
 
 type sessionHandler struct {

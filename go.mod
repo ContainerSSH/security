@@ -1,10 +1,10 @@
-module github.com/containerssh/security
+module github.com/containerssh/security/v2
 
 go 1.14
 
 require (
 	github.com/containerssh/log v1.0.0
-	github.com/containerssh/sshserver v1.0.0
+	github.com/containerssh/sshserver/v2 v2.0.0
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/mattn/go-shellwords v1.0.11 // indirect
 	github.com/stretchr/testify v1.7.0
@@ -37,3 +37,5 @@ replace (
 	gopkg.in/yaml.v2 v2.2.6 => gopkg.in/yaml.v2 v2.2.8
 	gopkg.in/yaml.v2 v2.2.7 => gopkg.in/yaml.v2 v2.2.8
 )
+
+replace github.com/containerssh/sshserver/v2 v2.0.0 => ../sshserver

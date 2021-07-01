@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/containerssh/log"
-	"github.com/containerssh/sshserver"
+	sshserver "github.com/containerssh/sshserver/v2"
 )
 
 // New creates a new security backend proxy.
